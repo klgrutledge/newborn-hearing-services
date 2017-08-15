@@ -9,35 +9,37 @@ def total_census(dpl_census, schc_census, sjhw_census, sjsc_census, smhc_census)
 # Function calculating refer rate by delivery hospital
 def refer_rate_hospital(hospital, hospital_census):
     rr_hospital = (hospital, )
+    hospital_census = float(hospital_census)
 
     conn = sqlite3.connect('2017-refer-database.db')
     # Select all refer patients by hospital from refers database
     d = conn.cursor()
     d.execute('SELECT * from refers WHERE delivery_hospital =?', rr_hospital)
     refer_data = d.fetchall()
-
-    refer_rate = (len(refer_data)/hospital_census*100)
     d.close()
-    return str(refer_rate) + "%"
+
+    number_of_refers = float(len(refer_data))
+    hospital_refer_rate = ((number_of_refers / hospital_census)*100)
+    return str(hospital_refer_rate) + "%"
 
 # Function calculating refer rate overall (5 delivery hospitals)
 def refer_rate_overall(dpl_census, schc_census, sjhw_census, sjsc_census, smhc_census):
-    tc = total_census(dpl_census, schc_census, sjhw_census, sjsc_census, smhc_census)
+    tc = float(total_census(dpl_census, schc_census, sjhw_census, sjsc_census, smhc_census))
 
     conn = sqlite3.connect('2017-refer-database.db')
     # Select all refer patients from refers database
     d = conn.cursor()
     d.execute('SELECT * from refers')
     refer_data = d.fetchall()
-
-    refer_rate = ((len(refer_data) / tc)*100)
     d.close()
+
+    refer_rate = (float(len(refer_data) / tc)*100)
+
     return str(refer_rate) + "%"
 
 # Function calculating missed babies by delivery hospital
 def missed_babies_hospital(hospital):
     hospital = (hospital,)
-    missed = ('missed',)
 
     conn = sqlite3.connect('2017-refer-database.db')
     # Select all missed patients by hospital from refers database
@@ -80,7 +82,7 @@ def follow_up_rate_hospital(hospital):
         return "There are no patients who need follow-up testing at this hospital for the current month (no refers)"
 
     else:
-        follow_up_rate_hospital = (len(follow_up_data) / len(refer_data)*100)
+        follow_up_rate_hospital = float(len(follow_up_data) / len(refer_data)*100)
         d.close()
         return str(follow_up_rate_hospital) + "%"
 
@@ -100,7 +102,7 @@ def follow_up_rate_overall():
         d.close()
         return "There are no patients who need follow-up testing for the current month (no refers)"
     else:
-        follow_up_rate_overall = (len(follow_up_data) / len(refer_data)*100)
+        follow_up_rate_overall = float((len(follow_up_data) / len(refer_data)*100))
         d.close()
         return str(follow_up_rate_overall) + "%"
 
@@ -121,7 +123,7 @@ def lost_to_follow_up_hospital(hospital):
         d.close()
         return "There are no patients who are lost to follow-up at this hospital for the current month"
     else:
-        lost_rate_hospital = len(lost_data) / len(refer_data)
+        lost_rate_hospital = float(len(lost_data) / len(refer_data))
         d.close()
         return str(lost_rate_hospital) + "%"
 
@@ -142,7 +144,7 @@ def lost_to_follow_up_overall():
         d.close()
         return "No babies were lost to follow-up this month"
     else:
-        lost_rate_overall = (len(follow_up_data) / len(refer_data)*100)
+        lost_rate_overall = float((len(follow_up_data) / len(refer_data)*100))
         d.close()
         return str(lost_rate_overall) + "%"
 
