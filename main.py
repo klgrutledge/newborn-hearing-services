@@ -57,21 +57,14 @@ def login(username, password):
     else:
         return False
 
-
-# Function allowing audiologist to edit patient data in refer entry
-# def edit_refer_entry
-
-# Function allowing audiologist to delete refer entry
-# def delete_refer_entry
-
 # Function allowing audiologist to search patient data in refer database
-def search_refer_database_ln(search_last_name):
-    search_term = (search_last_name,)
+def search_refer_database_row_number(row_number):
+    search_term = (row_number,)
 
     conn = sqlite3.connect('2017-refer-database.db')
     # Select all entries containing search_term within refers database
     d = conn.cursor()
-    d.execute('SELECT * FROM refers WHERE last_name =?', search_term)
+    d.execute('SELECT * FROM refers WHERE id=?', search_term)
     all_rows = d.fetchall()
     for row in all_rows:
         if search_term in row:
@@ -82,6 +75,38 @@ def search_refer_database_ln(search_last_name):
             return "This patient has not been entered in the refers database"
 
 
+# Function allowing audiologist to edit patient data in refer entry
+def edit_refer_entry(row_number):
+    conn = sqlite3.connect('2017-refer-database.db')
+    d = conn.cursor()
+    refer_entry = search_refer_database_row_number(row_number)
+
+    for column in refer_entry:
+        message = "Would you like to edit this %s (Y or N): "
+        edit_column_message = single_s_sub(message, column)
+        edit_column = str(raw_input(edit_column_message))
+
+        if edit_column == "Y":
+            value = str(raw_input("Update: "))
+            d.execute("UPDATE refers SET column=? WHERE id=?", column, value)
+    d.close()
+
+
+# Function allowing audiologist to delete refer entry
+def delete_refer_entry(row_number):
+    conn = sqlite3.connect('2017-refer-database.db')
+    d = conn.cursor()
+    refer_entry = search_refer_database_row_number(row_number)
+
+    message = "Are you sure you would like to delete refer entry for patient %s (Y or N): "
+    double_check_message = single_s_sub(message, row_number)
+    double_check = str(raw_input(double_check_message))
+
+    if double_check == "Y":
+        d.execute("DELETE from refers WHERE id=?", row_number)
+        conn.commit()
+    d.close()
+
 def print_refer_database():
     conn = sqlite3.connect('2017-refer-database.db')
     d = conn.cursor()
@@ -90,6 +115,9 @@ def print_refer_database():
     for row in all_rows:
         print row
     d.close()
+
+def single_s_sub(message,s):
+    return message % s
 
 def main():
     # CREATING DATABASES
@@ -143,30 +171,32 @@ def main():
     print print_refer_database()
 
     # User must input patient data into refer database (future improvement: make class to represent refer data entry)
-    last_name = str(raw_input("Patient's Last Name: "))
-    first_name = str(raw_input("Patient's First Name: "))
-    MOC_last_name = str(raw_input("Mother of Child's (MOC) Last Name: "))
-    MOC_first_name = str(raw_input("MOC's First Name: "))
-    DOB = str(raw_input("Patient's date of birth (DOB): "))
-    MOC_DOB = str(raw_input("MOC's DOB: "))
-    street = str(raw_input("Patient's address (street number & name): "))
-    city = str(raw_input("Patient's address (city): "))
-    zip_code = str(raw_input("Patient's zip code: "))
-    pediatrician = str(raw_input("Patient's pediatrician/primary care physician: "))
-    delivery_hospital = str(raw_input("Hospital at which MOC delivered (DPL, SCHC, SJHW, SJSC, SMHC): "))
-    refer_screening = str(raw_input("Patient referred on which screening (DPOAE, ABAER, or miss): "))
-    refer_ear = str(raw_input("Patient referred in which ear (R, L, or AU): "))
-    technician_initials = raw_input("Technician initials of tech who performed screening: ")
-    risk_factors = str(raw_input("Patient risk factor(s) for newborn hearing loss: "))
-    Epic_note = str(raw_input("Epic note created (Y, N, or pending): "))
-    Epic_order = str(raw_input("Epic order created (Y, N, or CNE): "))
-    fax = str(raw_input("Pediatrician faxed (Y, N, or pending): "))
-    follow_up_appt_location = str(raw_input("Follow-up appointment location: "))
-    follow_up_appt_date = str(raw_input("Follow-up appointment date: "))
-    follow_up_results = str(raw_input("Follow-up results, entered by ear & frequencies tested: "))
-    hearing_loss_ear = str(raw_input("If hearing loss is present, which ear (R, L, or AU): "))
-    hearing_loss_severity = str(raw_input(
-            "If hearing loss is present, which severity (mild, moderate, moderately-severe, severe, profound): "))
+    enter_data = str(raw_input("Would you like to enter new patient information (Y or N)?: "))
+    if enter_data == "Y":
+        last_name = str(raw_input("Patient's Last Name: "))
+        first_name = str(raw_input("Patient's First Name: "))
+        MOC_last_name = str(raw_input("Mother of Child's (MOC) Last Name: "))
+        MOC_first_name = str(raw_input("MOC's First Name: "))
+        DOB = str(raw_input("Patient's date of birth (DOB): "))
+        MOC_DOB = str(raw_input("MOC's DOB: "))
+        street = str(raw_input("Patient's address (street number & name): "))
+        city = str(raw_input("Patient's address (city): "))
+        zip_code = str(raw_input("Patient's zip code: "))
+        pediatrician = str(raw_input("Patient's pediatrician/primary care physician: "))
+        delivery_hospital = str(raw_input("Hospital at which MOC delivered (DPL, SCHC, SJHW, SJSC, SMHC): "))
+        refer_screening = str(raw_input("Patient referred on which screening (DPOAE, ABAER, or miss): "))
+        refer_ear = str(raw_input("Patient referred in which ear (R, L, or AU): "))
+        technician_initials = raw_input("Technician initials of tech who performed screening: ")
+        risk_factors = str(raw_input("Patient risk factor(s) for newborn hearing loss: "))
+        Epic_note = str(raw_input("Epic note created (Y, N, or pending): "))
+        Epic_order = str(raw_input("Epic order created (Y, N, or CNE): "))
+        fax = str(raw_input("Pediatrician faxed (Y, N, or pending): "))
+        follow_up_appt_location = str(raw_input("Follow-up appointment location: "))
+        follow_up_appt_date = str(raw_input("Follow-up appointment date: "))
+        follow_up_results = str(raw_input("Follow-up results, entered by ear & frequencies tested: "))
+        hearing_loss_ear = str(raw_input("If hearing loss is present, which ear (R, L, or AU): "))
+        hearing_loss_severity = str(raw_input(
+                "If hearing loss is present, which severity (mild, moderate, moderately-severe, severe, profound): "))
 
     # last_name ='Smith'
     # first_name ='John'
@@ -192,15 +222,28 @@ def main():
     # hearing_loss_ear ='Pending'
     # hearing_loss_severity ='Pending'
 
-    # Saving refer entry just entered
-    save_refer_patient_to_database(last_name, first_name, MOC_last_name, MOC_first_name, DOB, MOC_DOB, street, city,
-    zip_code, pediatrician, delivery_hospital, refer_screening, refer_ear, technician_initials,
-    risk_factors, Epic_note, Epic_order, fax, follow_up_appt_location, follow_up_appt_date,
-    follow_up_results, hearing_loss_ear, hearing_loss_severity)
+        # Saving refer entry just entered
+        save_refer_patient_to_database(last_name, first_name, MOC_last_name, MOC_first_name, DOB, MOC_DOB, street, city,
+        zip_code, pediatrician, delivery_hospital, refer_screening, refer_ear, technician_initials,
+        risk_factors, Epic_note, Epic_order, fax, follow_up_appt_location, follow_up_appt_date,
+        follow_up_results, hearing_loss_ear, hearing_loss_severity)
 
-    reroute = raw_input('Would you like to return to the main database (Y or N)?: ')
-    if reroute == 'Y':
+    reroute_1 = raw_input('Would you like to return to the main database (Y or N)?: ')
+    if reroute_1 == 'Y':
         print print_refer_database()
+
+    reroute_2 = raw_input('Would you like to edit a refer entry (Y or N)?: ')
+    if reroute_2 == 'Y':
+        row_number = str(raw_input("What is the row number of the patient you would like to edit?: "))
+        edited_refer_entry = edit_refer_entry(row_number)
+        print edited_refer_entry
+
+    reroute_3 = raw_input('Would you like to delete a refer entry (Y or N)?: ')
+    if reroute_3 == 'Y':
+        last_name = str(raw_input("What is the row number of the patient you would like to delete?: "))
+        deleted_refer_entry = delete_refer_entry(last_name)
+        refers_database = print_refer_database()
+        print refers_database
 
 
 if __name__ == "__main__":
